@@ -29,16 +29,18 @@ module Bolt
       config_file = File.expand_path('~/.puppetlabs/bolt/analytics.yaml')
       config = load_config(config_file)
 
-      if config['disabled'] || ENV['BOLT_DISABLE_ANALYTICS']
-        logger.debug "Analytics opt-out is set, analytics will be disabled"
-        NoopClient.new
-      else
+      if config['enabled'] || ENV['BOLT_ENABLE_ANALYTICS']
+        
+        logger.debug "Analytics opt-in is set, analytics will be enabled"
+        
         unless config.key?('user-id')
           config['user-id'] = SecureRandom.uuid
           write_config(config_file, config)
         end
 
         Client.new(config['user-id'])
+      else
+        NoopClient.new
       end
     rescue StandardError => e
       logger.debug "Failed to initialize analytics client, analytics will be disabled: #{e}"
